@@ -3,4 +3,6 @@ venv
 staticfiles
 .env
 db.sqlite3
-.idea
+.idea/
+.sass_cache
+node_modules
