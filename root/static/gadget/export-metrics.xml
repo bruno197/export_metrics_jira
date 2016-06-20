@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <Module>
     <ModulePrefs
-            title="Export metrics"
+            title="My metrics"
             author="brunofr"
             thumbnail="http://172.16.59.54:8000/static/img/longview_icon.png"
             screenshot="http://172.16.59.54:8000/static/img/longview_icon.png"
             description="A simple way to look the metrics of your projects, also provide support to export the results to your email."
-            height="360">
+            height="370">
 
         <Require feature="minimessage" />
         <Require feature="dynamic-height" />
@@ -14,13 +14,6 @@
 
         <Optional feature="auth-refresh"/>
         <Require feature="oauthpopup"/>
-        <OAuth>
-            <Service>
-                <Access url="__ATLASSIAN_BASE_URL__/plugins/servlet/oauth/access-token" method="POST"/>
-                <Request url="__ATLASSIAN_BASE_URL__/plugins/servlet/oauth/request-token" method="POST"/>
-                <Authorization url="__ATLASSIAN_BASE_URL__/plugins/servlet/oauth/authorize?oauth_callback=http%3A%2F%2Foauth.gmodules.com%2Fgadgets%2Foauthcallback"/>
-            </Service>
-        </OAuth>
 
     </ModulePrefs>
 

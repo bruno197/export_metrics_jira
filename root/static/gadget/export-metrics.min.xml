@@ -14,13 +14,6 @@
 
         <Optional feature="auth-refresh"/>
         <Require feature="oauthpopup"/>
-        <OAuth>
-            <Service>
-                <Access url="http://192.168.99.100:8080/plugins/servlet/oauth/access-token" method="POST"/>
-                <Request url="http://192.168.99.100:8080/plugins/servlet/oauth/request-token" method="POST"/>
-                <Authorization url="http://192.168.99.100:8080/plugins/servlet/oauth/authorize?oauth_callback=http%3A%2F%2Foauth.gmodules.com%2Fgadgets%2Foauthcallback"/>
-            </Service>
-        </OAuth>
 
     </ModulePrefs>
 
