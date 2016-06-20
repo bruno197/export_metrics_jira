@@ -1,0 +1,53 @@
+md-content.layout-padding.layout-column.flex {
+    padding: 0 70px;
+}
+
+md-card {
+    height: 300px;
+
+    .md-headline {
+        color: #fff;
+    }
+
+    md-card-footer {
+        background-color: #fff;
+        margin: 0px;
+
+        md-card-actions {
+            background-color: #fff;
+        }
+    }
+}
+
+.md-button.md-fab.md-mini {
+    line-height: 4rem;
+    width: 4rem;
+    bottom: 30px;
+    right: 30px;
+    height: 4rem;
+    position: fixed;
+}
+
+floating-button {
+    line-height: 4rem;
+    width: 4rem;
+    bottom: 30px;
+    right: 30px;
+    height: 4rem;
+    position: fixed;
+}
+
+
+#triangle-topright {
+	width: 0;
+	height: 0;
+	border-top: 55px solid #212121;
+	border-left: 55px solid transparent;
+  margin-left: 80%;
+  // position: relative;
+
+  // md-icon {
+  //   position: absolute;
+  //   z-index: 1;
+  // }
+}

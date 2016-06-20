@@ -1,0 +1,121 @@
+.md-notifications-panel {
+  width: 350px;
+  height: 400px;
+  margin: 0;
+  position: fixed;
+  top: 60px;
+  right: 16px;
+  z-index: 100;
+  overflow-x: visible;
+  overflow-y: auto;
+  box-sizing: border-box;
+  pointer-events: none;
+  opacity: 0;
+  transition: $swift-ease-out;
+  transition-duration: .2s;
+  transform: scale(.3, .3);
+  transform-origin: 287px 0 0;
+  background: #e5e5e5;
+  border-radius: 1px;
+  @extend .md-whiteframe-4dp;
+
+  &.md-active {
+    pointer-events: auto;
+    opacity: 1;
+    transform: scale(1, 1);
+    transition: $swift-ease-in;
+    transition-duration: .2s;
+
+    > * {
+      opacity: 1;
+      transition: $swift-ease-in;
+      transition-duration: .2s;
+      transition-delay: .1s;
+    }
+  }
+
+  &:after,
+  &:before {
+    width: 0;
+    height: 0;
+    position: absolute;
+    right: 56px;
+    z-index: 1;
+    border-color: rgba(0, 0, 0, 0);
+    border-style: dashed dashed solid;
+    border-width: 0 8.5px 8.5px;
+    content: " ";
+  }
+
+  &:after {
+    top: -8px;
+    border-bottom-color: #e5e5e5;
+  }
+
+  &:before {
+    top: -9px;
+    border-bottom-color: rgba(0, 0, 0, .2);
+  }
+
+  > * {
+    opacity: 0;
+  }
+
+  .md-notifications-title {
+    margin-top: 0;
+    padding: 16px 16px 0;
+  }
+
+  .notification-list {
+    padding: 0 16px 16px;
+    overflow: auto;
+  }
+
+  .notification {
+    height: 64px;
+    margin: 0;
+    background-color: #fff;
+
+    + .notification {
+      margin-top: 8px;
+    }
+  }
+
+  .notification-icon {
+    width: 64px;
+    height: 100%;
+    margin-right: 8px;
+  }
+
+  .notification-icon-ice {
+    background-color: $color-ice;
+
+    md-icon {
+      color: rgba(0, 0, 0, .54);
+    }
+  }
+
+  .notification-icon-red {
+    background-color: $color-red;
+
+    md-icon {
+      color: rgba(255, 255, 255, .87);
+    }
+  }
+
+  .notification-icon-orange {
+    background-color: $color-orange;
+
+    md-icon {
+      color: rgba(255, 255, 255, .87);
+    }
+  }
+
+  .notification-icon-blue {
+    background-color: $color-blue;
+
+    md-icon {
+      color: rgba(255, 255, 255, .87);
+    }
+  }
+}

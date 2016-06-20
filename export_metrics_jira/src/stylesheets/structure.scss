@@ -1,0 +1,209 @@
+/*  Base
+   ========================================================================== */
+
+#main {
+  overflow: hidden;
+  background: $color-body-background;
+  font-family: $font-roboto;
+  @extend .md-body-1;
+}
+
+.main-container {
+  position: relative;
+
+  > .md-sidenav-backdrop {
+    position: fixed;
+    z-index: 99;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, .1);
+  transition: $swift-ease-in-out;
+  background-color: rgba(0, 0, 0, .05);
+
+  &:hover {
+    box-shadow: inset 1px 1px 0 rgba(0, 0, 0, .05),
+                inset 0 -1px 0 rgba(0, 0, 0, .03);
+    background-color: rgba(0, 0, 0, .08);
+  }
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+}
+
+::-webkit-scrollbar-corner {
+  background-color: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, .2);
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, .05),
+              inset 0 -1px 0 rgba(0, 0, 0, .07);
+  transition: $swift-ease-in-out;
+}
+
+.page-loading {
+  .main-sidenav {
+    opacity: 0;
+    transform: translate3D(-100%, 0, 0);
+  }
+
+  .main-content {
+    overflow: hidden;
+    opacity: 0;
+    transform: translate3D(0, 20%, 0);
+  }
+}
+
+
+
+/*  Main Header
+   ========================================================================== */
+
+.main-header {
+  position: relative;
+  z-index: 70;
+  
+  .md-toolbar-tools{
+    background: #fff;
+  }
+
+  .md-button-notifications {
+    $size: 20px;
+
+    margin-top: 1px;
+
+    .bell-holder {
+      width: $size;
+      height: $size;
+      margin-top: 3px;
+      display: inline-block;
+      background: #D0021B;
+      border-radius: $size;
+    }
+
+    md-icon {
+      width: $size;
+      height: $size;
+      margin-top: 1px;
+      color: #000!important;
+      font-size: 12px;
+    }
+    
+    span {
+      display: inline-block;
+      position: relative;
+      top: -2px;
+      color: #fff;
+      font-size: 13px;
+    }
+  }
+
+  .md-user-avatar {
+    $size: 32px;
+
+    width: $size;
+    height: $size;
+    min-height: $size;
+    margin-top: 1px;
+    margin-right: 0 !important;
+    padding: 0;
+
+    &,
+    img {
+      width: $size;
+      height: $size;
+      border-radius: $size;
+    }
+  }
+  
+  md-input-container:not(.md-input-invalid).md-input-focused .md-input, .md-input{
+    border-width: 0 0 0px 0;
+    margin: 8px 0 0 0;
+  }
+}
+
+
+
+/*  Main Sidenav
+   ========================================================================== */
+
+md-sidenav.main-sidenav {
+  $size: 250px;
+
+  width: $size;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  transition: $swift-ease-out;
+
+  &.md-locked-open {
+    position: absolute;
+    z-index: 60;
+
+    &.md-closed {
+      position: absolute;
+      opacity: 0;
+      transform: translate3D(-100%, 0, 0);
+    }
+
+    &:not(.md-closed) + .main-content {
+      margin-left: $size;
+    }
+  }
+
+  .md-sidemenu-button,
+  .md-sidemenu-toggle {
+    background-color: $color-body-background;
+  }
+}
+
+
+
+/*  Main Content
+   ========================================================================== */
+
+.main-content {
+  width: 100%;
+  position: relative;
+  overflow-y: auto;
+  transition: $swift-ease-out;
+
+  &.ng-leave {
+    display: none;
+  }
+
+  > div {
+    width: 100%;
+    margin: 0 auto;
+  }
+}
+
+    .md-2-line{
+        background-color: rgba(228, 226, 226, 0.5);
+    }
+
+
+/*  Main Loading
+   ========================================================================== */
+
+.main-loading {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
+  background-color: #fff;
+  transition: $swift-ease-out;
+
+  &.ng-leave-active {
+    opacity: 0;
+  }
+}

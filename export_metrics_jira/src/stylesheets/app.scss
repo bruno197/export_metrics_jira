@@ -1,0 +1,19 @@
+@charset 'UTF-8';
+// Modules and Variables
+@import "modules/all";
+
+/* Third party */
+@import 'angular-material/angular-material.scss';
+@import 'angular-material-sidemenu/src/stylesheets/main.scss';
+
+/* Site Styles */
+@import 'type';
+@import 'forms';
+@import 'structure';
+
+/* Components */
+@import 'components/components';
+
+
+/* Pages */
+@import 'pages/pages';

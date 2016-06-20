@@ -1,0 +1,32 @@
+/*  Overrides
+   ========================================================================== */
+
+@mixin placeholder($color: #b1b1b1) {
+  color: $color;
+}
+
+::-webkit-input-placeholder {
+  @include placeholder();
+}
+
+:-moz-placeholder {
+  @include placeholder();
+}
+
+::-moz-placeholder {
+  @include placeholder();
+}
+
+:-ms-input-placeholder {
+  @include placeholder();
+}
+
+
+
+/*  Fields
+   ========================================================================== */
+
+
+
+/*  Validations
+   ========================================================================== */
