@@ -6,7 +6,7 @@ admin.autodiscover()
 import hello.views
 
 # Examples:
-# url(r'^$', 'gettingstarted.views.home', name='home'),
+# url(r'^$', 'export_metrics_jira.views.home', name='home'),
 # url(r'^blog/', include('blog.urls')),
 
 urlpatterns = [
