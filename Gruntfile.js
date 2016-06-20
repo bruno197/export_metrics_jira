@@ -11,24 +11,12 @@ module.exports = function(grunt) {
                 loadPath: 'node_modules'
             },
             files: {
-              'static/css/style.css': 'export_metrics_jira/src/stylesheets/app.scss'
+              'export_metrics_jira/static/css/style.css': 'export_metrics_jira/src/stylesheets/app.scss'
             }
           }
         },
-        concat: {
-          options: {
-            separator: ';'
-          },
-          js: {
-            src: ['export_metrics_jira/src/app/**/*.js'],
-            dest: 'static/js/app.js'
-          }
-        },
-        clean: {
-            static: ['static/**/*', '!static/*.xml']
-        },
         browserify: {
-            'static/js/app.js': ['export_metrics_jira/src/app/app.js']
+            'export_metrics_jira/static/js/app.js': ['export_metrics_jira/src/app/app.js']
         },
         watch: {
             options: {livereload: true},
@@ -41,25 +29,13 @@ module.exports = function(grunt) {
                 tasks: ['sass:dev']
             }
         },
-        xmlpoke: {
-            updateAnAttribute: {
-              options: {
-                xpath: '//Content',
-                value: '<![CDATA[ js aqui dentro ]]>',
-                valueType: 'element'
-              },
-              files: {
-                'static/prod.xml': 'static/export-metrics.xml',
-              },
-            },
-        },
         uglify: {
             options: {
                 mangle: false
             },
             js: {
                 files: {
-                    'static/js/app.min.js': ['static/js/app.js']
+                    'export_metrics_jira/static/js/app.min.js': ['static/js/app.js']
                 }
             }
         },
@@ -70,7 +46,7 @@ module.exports = function(grunt) {
           },
           target: {
             files: {
-              'static/css/style.min.css': ['static/css/style.css']
+              'export_metrics_jira/static/css/style.min.css': ['static/css/style.css']
             }
           }
         }
