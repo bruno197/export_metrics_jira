@@ -25,7 +25,7 @@
     <Content type="html" view="default,canvas">
         <![CDATA[
             <div id="main">
-                <link rel="stylesheet" href="http://172.16.59.54:8000/static/css/style.css">
+                <link rel="stylesheet" href="https://blooming-oasis-63387.herokuapp.com/static/css/style.css">
                 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
                 <div layout="column" ng-app="Gadget" ng-controller="AppController as app" ng-cloak>
@@ -200,7 +200,7 @@
                     </div>
                 </div>
 
-                <script src="http://172.16.59.54:8000/static/js/app.js"></script>
+                <script src="https://blooming-oasis-63387.herokuapp.com/static/js/app.js"></script>
             </div>
         ]]>
     </Content>

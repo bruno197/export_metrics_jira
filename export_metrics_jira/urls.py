@@ -11,5 +11,6 @@ import root.views
 
 urlpatterns = [
     url(r'^$', root.views.index, name='index'),
+    url(r'^api/', include('root.urls')),
     url(r'^admin/', include(admin.site.urls)),
 ]
