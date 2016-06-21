@@ -185,7 +185,7 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast) {
         $mdDialog.show(confirm).then(function(result) {
             $http({
                 method: 'POST',
-                url: 'http://172.16.59.54:8000/api/send/email',
+                url: 'https://blooming-oasis-63387.herokuapp.com/api/sendemail',
                 data: {user: AppService.user, metrics: $scope.metrics},
             }).then(function successCallback(response) {
                 $mdToast.show(
