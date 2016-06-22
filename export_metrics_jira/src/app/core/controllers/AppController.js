@@ -20,6 +20,7 @@ module.exports = function($rootScope, $mdSidenav, $scope, $mdMedia, $window, $md
         );
     }
 
+
   var self = this;
 
   this.data = AppService;

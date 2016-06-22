@@ -12,7 +12,7 @@ require('angular-animate'),
 ])
 .config(require('./config'));
 
-},{"./config":2,"./core":5,"angular":22,"angular-animate":9,"angular-material":15,"angular-material-sidemenu":13,"angular-messages":17,"angular-sanitize":19,"angular-ui-router":20}],2:[function(require,module,exports){
+},{"./config":2,"./core":6,"angular":23,"angular-animate":10,"angular-material":16,"angular-material-sidemenu":14,"angular-messages":18,"angular-sanitize":20,"angular-ui-router":21}],2:[function(require,module,exports){
 module.exports = function($mdThemingProvider, $interpolateProvider) {
 
   'ngInject';
@@ -99,6 +99,7 @@ module.exports = function($rootScope, $mdSidenav, $scope, $mdMedia, $window, $md
         );
     }
 
+
   var self = this;
 
   this.data = AppService;
@@ -144,6 +145,7 @@ module.exports = function($rootScope, $mdSidenav, $scope, $mdMedia, $window, $md
 },{}],4:[function(require,module,exports){
 module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast) {
     'ngInject';
+    AppService.setLoading(false);
 
     var init = function() {
         $scope.selectProject;
@@ -329,7 +331,7 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast) {
         $mdDialog.show(confirm).then(function(result) {
             $http({
                 method: 'POST',
-                url: 'http://172.16.59.54:8000/api/send/email',
+                url: 'https://blooming-oasis-63387.herokuapp.com/api/sendemail',
                 data: {user: AppService.user, metrics: $scope.metrics},
             }).then(function successCallback(response) {
                 $mdToast.show(
@@ -359,16 +361,39 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast) {
 };
 
 },{}],5:[function(require,module,exports){
+module.exports = function($http, AppService) {
+    'ngInject';
+    return {
+        restrict: 'A',
+        link: function (scope, elm, attrs)
+        {
+            scope.isLoading = function () {
+                return $http.pendingRequests.length > 0;
+            };
+
+            scope.$watch(scope.isLoading, function (loading)
+            {
+                if(loading){
+                    AppService.setLoading(true);
+                }else{
+                    AppService.setLoading(false);
+                }
+            });
+        }
+    };
+};
+},{}],6:[function(require,module,exports){
 var moduleName = 'Gadget.Core';
 
 angular.module(moduleName, [])
+  .directive('loading', require('./directives/SpinerDirective'))
   .controller('AppController', require('./controllers/AppController'))
   .controller('JiraCoreController', require('./controllers/JiraCoreController'))
   .service('AppService', require('./services/AppService'))
   .service('JiraCoreService', require('./services/JiraCoreService'));
 
 module.exports = moduleName;
-},{"./controllers/AppController":3,"./controllers/JiraCoreController":4,"./services/AppService":6,"./services/JiraCoreService":7}],6:[function(require,module,exports){
+},{"./controllers/AppController":3,"./controllers/JiraCoreController":4,"./directives/SpinerDirective":5,"./services/AppService":7,"./services/JiraCoreService":8}],7:[function(require,module,exports){
 module.exports = function($http) {
     'ngInject';
     var app = {
@@ -421,7 +446,7 @@ module.exports = function($http) {
 
   return app;
 };
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 module.exports = function JiraCoreService(AppService) {
     'ngInject';
 
@@ -663,7 +688,7 @@ module.exports = function JiraCoreService(AppService) {
   return JiraCoreService;
 }
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 /**
  * @license AngularJS v1.5.7
  * (c) 2010-2016 Google, Inc. http://angularjs.org
@@ -4811,11 +4836,11 @@ angular.module('ngAnimate', [])
 
 })(window, window.angular);
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 require('./angular-animate');
 module.exports = 'ngAnimate';
 
-},{"./angular-animate":8}],10:[function(require,module,exports){
+},{"./angular-animate":9}],11:[function(require,module,exports){
 /**
  * @license AngularJS v1.5.7
  * (c) 2010-2016 Google, Inc. http://angularjs.org
@@ -5222,19 +5247,19 @@ ngAriaModule.directive('ngShow', ['$aria', function($aria) {
 
 })(window, window.angular);
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 require('./angular-aria');
 module.exports = 'ngAria';
 
-},{"./angular-aria":10}],12:[function(require,module,exports){
+},{"./angular-aria":11}],13:[function(require,module,exports){
 !function(e){function t(u){if(n[u])return n[u].exports;var d=n[u]={exports:{},id:u,loaded:!1};return e[u].call(d.exports,d,d.exports,t),d.loaded=!0,d.exports}var n={};return t.m=e,t.c=n,t.oe=function(e){throw e},t.p="",t(t.s=4)}([function(e,t,n){"use strict";function u(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(t,"__esModule",{value:!0});var d=n(6),i=u(d),r=n(5),o=u(r),a=function(){return{restrict:"E",scope:{locked:"@?mdLocked"},replace:!0,transclude:!0,template:i.default,link:o.default}};t.default={name:"mdSidemenu",directive:a}},function(e,t,n){"use strict";function u(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(t,"__esModule",{value:!0});var d=n(7),i=u(d),r=n(8),o=u(r),a=function(){return{restrict:"E",scope:{uiSref:"@?",uiSrefActive:"@?",href:"@?",target:"@?"},transclude:!0,template:o.default,controller:i.default,controllerAs:"$mdSidemenuButton",bindToController:!0}};t.default={name:"mdSidemenuButton",directive:a}},function(e,t,n){"use strict";function u(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(t,"__esModule",{value:!0});var d=n(9),i=u(d),r=n(10),o=u(r),a=function(){return{restrict:"E",scope:{heading:"@mdHeading",icon:"@?mdIcon",arrow:"@?mdArrow"},replace:!0,transclude:!0,template:o.default,controller:i.default,controllerAs:"$mdSidemenuContent",bindToController:!0}};t.default={name:"mdSidemenuContent",directive:a}},function(e,t,n){"use strict";function u(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(t,"__esModule",{value:!0});var d=n(11),i=u(d),r=function(){return{restrict:"E",replace:!0,transclude:!0,template:i.default}};t.default={name:"mdSidemenuGroup",directive:r}},function(e,t,n){"use strict";function u(e){return e&&e.__esModule?e:{"default":e}}var d=n(0),i=u(d),r=n(3),o=u(r),a=n(2),c=u(a),l=n(1),s=u(l);!function(e){e.module("ngMaterialSidemenu",["ngMaterial"]).directive(i.default.name,i.default.directive).directive(o.default.name,o.default.directive).directive(c.default.name,c.default.directive).directive(s.default.name,s.default.directive)}(angular)},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.default=function(e,t,n){e.$watch(function(){return n.locked},function(e){e?t[0].classList.add("md-sidemenu-locked"):t[0].classList.remove("md-sidemenu-locked")})}},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.default=function(e,t){var n=t.locked&&"md-sidemenu-locked";return'<div class="md-sidemenu '+n+'" ng-transclude></div>'}},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.default=function(){}},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.default=function(){return'\n    <md-button\n      class="md-sidemenu-button"\n      layout="column"\n      ng-attr-href="{{ $mdSidemenuButton.href }}"\n      ng-attr-ui-sref="{{ $mdSidemenuButton.uiSref }}"\n      ng-attr-ui-sref-active="{{ $mdSidemenuButton.uiSrefActive }}"\n      ng-attr-target="{{ $mdSidemenuButton.target }}">\n      <div layout="row" layout-fill layout-align="start center" ng-transclude></div>\n    </md-button>\n  '}},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.default=function(){this.visible=!1,this.changeState=function(){this.visible=!this.visible}}},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.default=function(){return'\n    <div class="md-sidemenu-content" layout="column">\n      <md-button class="md-sidemenu-toggle" ng-if="$mdSidemenuContent.heading" ng-click="$mdSidemenuContent.changeState();" ng-class="{ \'md-active\': $mdSidemenuContent.visible }">\n        <div layout="row">\n          <md-icon ng-if="$mdSidemenuContent.icon">{{ $mdSidemenuContent.icon }}</md-icon>\n          <span flex>{{ $mdSidemenuContent.heading }}</span>\n          <md-icon ng-if="$mdSidemenuContent.arrow">keyboard_arrow_down</md-icon>\n        </div>\n      </md-button>\n\n      <div class="md-sidemenu-wrapper" md-sidemenu-disable-animate ng-class="{ \'md-active\': $mdSidemenuContent.visible, \'md-sidemenu-wrapper-icons\':  $mdSidemenuContent.icon }" layout="column" ng-transclude></div>\n    </div>\n  '}},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.default=function(){return'<div class="md-sidemenu-group" flex layout="column" layout-align="start start" ng-transclude></div>'}}]);
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 require('./dest/angular-material-sidemenu.js');
 
 module.exports = 'ngMaterialSidemenu';
 
-},{"./dest/angular-material-sidemenu.js":12}],14:[function(require,module,exports){
+},{"./dest/angular-material-sidemenu.js":13}],15:[function(require,module,exports){
 /*!
  * Angular Material Design
  * https://github.com/angular/material
@@ -32541,7 +32566,7 @@ angular.module("material.core").constant("$MD_THEME_CSS", "/*  Only used with Th
 
 
 })(window, window.angular);;window.ngMaterial={version:{full: "1.0.9"}};
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 // Should already be required, here for clarity
 require('angular');
 
@@ -32555,7 +32580,7 @@ require('./angular-material');
 // Export namespace
 module.exports = 'ngMaterial';
 
-},{"./angular-material":14,"angular":22,"angular-animate":9,"angular-aria":11}],16:[function(require,module,exports){
+},{"./angular-material":15,"angular":23,"angular-animate":10,"angular-aria":12}],17:[function(require,module,exports){
 /**
  * @license AngularJS v1.5.7
  * (c) 2010-2016 Google, Inc. http://angularjs.org
@@ -33292,11 +33317,11 @@ function ngMessageDirectiveFactory() {
 
 })(window, window.angular);
 
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 require('./angular-messages');
 module.exports = 'ngMessages';
 
-},{"./angular-messages":16}],18:[function(require,module,exports){
+},{"./angular-messages":17}],19:[function(require,module,exports){
 /**
  * @license AngularJS v1.5.7
  * (c) 2010-2016 Google, Inc. http://angularjs.org
@@ -34015,11 +34040,11 @@ angular.module('ngSanitize').filter('linky', ['$sanitize', function($sanitize) {
 
 })(window, window.angular);
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 require('./angular-sanitize');
 module.exports = 'ngSanitize';
 
-},{"./angular-sanitize":18}],20:[function(require,module,exports){
+},{"./angular-sanitize":19}],21:[function(require,module,exports){
 /**
  * State-based routing for AngularJS
  * @version v0.2.18
@@ -38559,7 +38584,7 @@ angular.module('ui.router.state')
   .filter('isState', $IsStateFilter)
   .filter('includedByState', $IncludedByStateFilter);
 })(window, window.angular);
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 /**
  * @license AngularJS v1.5.7
  * (c) 2010-2016 Google, Inc. http://angularjs.org
@@ -70033,8 +70058,8 @@ $provide.value("$locale", {
 })(window);
 
 !window.angular.$$csp().noInlineStyle && window.angular.element(document.head).prepend('<style type="text/css">@charset "UTF-8";[ng\\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>');
-},{}],22:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 require('./angular');
 module.exports = angular;
 
-},{"./angular":21}]},{},[1]);
+},{"./angular":22}]},{},[1]);

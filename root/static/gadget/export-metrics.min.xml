@@ -33,6 +33,15 @@
                 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
                 <div layout="column" ng-app="Gadget" ng-controller="AppController as app" ng-cloak>
+
+                <div class="main-loading" layout="column" layout-align="center center" ng-show="app.data.loading">
+                        <div class="loading-spiner-holder" data-loading>
+                            <div class="loading-spiner">
+                                <md-progress-circular md-mode="indeterminate" md-diameter="100"></md-progress-circular>
+                            </div>
+                        </div>
+                    </div>
+
                     <md-toolbar class="md-hue-2">
                         <div class="md-toolbar-tools">
                             <img class="md-avatar" ng-src="//app.data.user.avatarUrls['24x24']//">

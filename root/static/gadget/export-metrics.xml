@@ -29,6 +29,15 @@
                 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
                 <div layout="column" ng-app="Gadget" ng-controller="AppController as app" ng-cloak>
+
+                    <div class="main-loading" layout="column" layout-align="center center" ng-show="app.data.loading">
+                        <div class="loading-spiner-holder" data-loading>
+                            <div class="loading-spiner">
+                                <md-progress-circular md-mode="indeterminate" md-diameter="100"></md-progress-circular>
+                            </div>
+                        </div>
+                    </div>
+
                     <md-toolbar class="md-hue-2">
                         <div class="md-toolbar-tools">
                             <img class="md-avatar" ng-src="//app.data.user.avatarUrls['24x24']//">
@@ -64,31 +73,45 @@
                             </md-content>
 
                             <md-tabs md-dynamic-height md-border-bottom ng-if="showmetrics">
-                                <md-tab label="Cost of Sprint">
+                                <md-tab label="Metrics">
                                     <md-content class="md-padding">
                                         <md-list>
                                             <md-list-item class="md-1-line">
-                                                <div class="md-list-item-text">
-                                                  <p>Total time spend</p>
-                                                </div>
-                                                <p class="md-secondary">//metrics.cost.alltime//</p>
-                                                <md-divider ng-if="!$last"></md-divider>
-                                            </md-list-item>
-                                            <md-list-item class="md-1-line">
-                                                <div class="md-list-item-text">
-                                                  <p>Total of sprints</p>
-                                                </div>
-                                                <p class="md-secondary">
-                                                    //metrics.cost.sprintstotal//
-                                                </p>
-                                                <md-divider ng-if="!$last"></md-divider>
-                                            </md-list-item>
-                                            <md-list-item class="md-2-line">
                                                 <div class="md-list-item-text">
                                                   <p>Cost of Sprint</p>
                                                 </div>
                                                 <p class="md-secondary">
                                                     //(metrics.cost.alltime*125)/metrics.cost.sprintstotal//
+                                                </p>
+                                                <md-divider ng-if="!$last"></md-divider>
+                                            </md-list-item>
+
+                                             <md-list-item class="md-1-line">
+                                                <div class="md-list-item-text">
+                                                  <p>Failure load</p>
+                                                </div>
+                                                <p class="md-secondary">
+                                                    //(metrics.failure.allbugs/metrics.failure.completedbugs)//
+                                                </p>
+                                                <md-divider ng-if="!$last"></md-divider>
+                                            </md-list-item>
+
+                                             <md-list-item class="md-1-line">
+                                                <div class="md-list-item-text">
+                                                  <p>Lead time</p>
+                                                </div>
+                                                <p class="md-secondary">
+                                                    //(metrics.leadtime.allstory/metrics.failure.completedstory) | number:2//
+                                                </p>
+                                                <md-divider ng-if="!$last"></md-divider>
+                                             </md-list-item>
+
+                                            <md-list-item class="md-1-line">
+                                                <div class="md-list-item-text">
+                                                  <p>Relative Velocity</p>
+                                                </div>
+                                                <p class="md-secondary">
+                                                    //(metrics.relativevelocity.storypointscurrent/metrics.relativevelocity.storypointsfirst)//
                                                 </p>
                                                 <md-divider ng-if="!$last"></md-divider>
                                             </md-list-item>

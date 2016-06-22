@@ -1,5 +1,6 @@
 module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast) {
     'ngInject';
+    AppService.setLoading(false);
 
     var init = function() {
         $scope.selectProject;
