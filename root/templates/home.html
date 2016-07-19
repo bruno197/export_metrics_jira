@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="Gadget" ng-controller="DashboardController as app">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=RobotoDraft:300,400,500,700,400italic">
+    <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+</head>
+<body layout="column" ng-class="{ 'page-loading': app.data.loading }">
+    <div class="page-container" flex layout="column" ng-style="{ 'display': 'flex' }" style="display: none;">
+        <md-toolbar class="main-header md-whiteframe-3dp">
+            <div class="md-toolbar-tools">
+              <md-button class="md-icon-button" ng-click="app.toggleNavigation();" >
+                <md-icon>menu</md-icon>
+              </md-button>
+
+              <h1 flex>{{ app.data.pageTitle }}</h1>
+
+              <!-- <div flex layout="row" layout-margin layout-fill>
+                <md-input-container md-no-float style="background-color:#E0E0E0;">
+                  <md-icon layout-padding>search</md-icon>
+                  <input layout-padding layout-margin layout-fill type="text" placeholder="Search" size="40" ng-required="false">
+                </md-input-container>
+              </div> -->
+            </div>
+        </md-toolbar>
+
+        <div class="main-container" layout="row" flex>
+            <md-sidenav class="main-sidenav md-sidenav-left" md-component-id="navigation-drawer" md-is-locked-open="app.lockedNavigation" layout="column">
+              <md-toolbar class="main-header md-whiteframe-3dp" ng-if="!app.mediumScreen">
+                <h1 class="md-toolbar-tools">{{ app.data.appTitle }}</h1>
+              </md-toolbar>
+
+              <md-sidemenu locked="app.lockedNavigation">
+                <md-sidemenu-group>
+                  <md-subheader class="md-no-sticky">Caption</md-subheader>
+
+                  <md-sidemenu-content md-icon="home" md-heading="Menu 1" md-arrow="true">
+                    <md-sidemenu-button href="#">Submenu 1</md-sidemenu-button>
+                    <md-sidemenu-button href="#">Submenu 2</md-sidemenu-button>
+                    <md-sidemenu-button href="#">Submenu 3</md-sidemenu-button>
+                  </md-sidemenu-content>
+                </md-sidemenu-group>
+
+                <md-sidemenu-group>
+                  <md-divider></md-divider>
+
+                  <md-subheader class="md-no-sticky">Caption</md-subheader>
+
+                  <md-sidemenu-button href="#"><md-icon>people</md-icon> Menu 4</md-sidemenu-button>
+                </md-sidemenu-group>
+              </md-sidemenu>
+            </md-sidenav>
+        </div>
+    </div>
+
+    <div class="main-loading" layout="column" layout-align="center center" ng-if="app.data.loading">
+      <md-progress-circular md-mode="indeterminate" md-diameter="100"></md-progress-circular>
+    </div>
+
+    <script src="static/js/app.js"></script>
+</body>
+</html>

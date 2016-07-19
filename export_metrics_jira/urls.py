@@ -11,6 +11,7 @@ import root.views
 
 urlpatterns = [
     url(r'^$', root.views.index, name='index'),
+    url(r'^cost_of_sprint$', root.views.cost_detail, name='cost_detail'),
     url(r'^api/', include('root.urls')),
     url(r'^admin/', include(admin.site.urls)),
 ]

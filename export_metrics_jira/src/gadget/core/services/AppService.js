@@ -1,18 +1,23 @@
 module.exports = function($http) {
     'ngInject';
     var app = {
+        //API_HOST: 'https://blooming-oasis-63387.herokuapp.com',
+        API_HOST: 'http://172.16.59.54:8000',
         user: {},
         loading: true,
         baseUrl: "http://"+window.location.host,
         error: '',
         params: {},
-        title: ''
+        title: '',
+        showSprint: false
     };
 
     app.invokeJiraPromise = function(url){
         return new Promise(function(resolve, reject) {
             var path = app.baseUrl.concat(url);
-            //Disable gadget cache
+            /* Disable gadget cache
+            ** Set nocache for all request
+            */
             var refreshInterval = 0;
             var ts = new Date().getTime();
             var sep = "?";
@@ -23,6 +28,7 @@ module.exports = function($http) {
                 sep = "&";
             }
             path = [ path, sep, "nocache=", ts ].join("");
+            //END Disable gadget cache
 
             app.params[gadgets.io.RequestParameters.CONTENT_TYPE] = gadgets.io.ContentType.JSON;
 
@@ -37,21 +43,29 @@ module.exports = function($http) {
         })
     };
 
-  app.setLoading = function(loading) {
-    app.loading = loading;
-  };
+    app.invoke = function(request) {
+        return $http(request);
+    }
 
-  app.setUser = function(user) {
-    app.user = user;
-  };
+    app.setLoading = function(loading) {
+        app.loading = loading;
+    };
 
-  app.setError = function(erro) {
-    app.error = erro;
-  };
+    app.setUser = function(user) {
+        app.user = user;
+    };
 
-  app.setTitle = function(title) {
-    app.title = title;
-  };
+    app.setError = function(erro) {
+        app.error = erro;
+    };
 
-  return app;
+    app.setTitle = function(title) {
+      app.title = title;
+    };
+
+    app.setShowSprint = function(showSprint) {
+      app.showSprint = showSprint;
+    };
+
+    return app;
 };

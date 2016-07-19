@@ -5,6 +5,10 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
     var init = function() {
         $scope.selectProject;
         $scope.selectBoard;
+        $scope.selectSprint;
+
+        $scope.hourlyRate = 0;
+
         $scope.issues = [];
         $scope.metrics = {};
 
@@ -29,6 +33,7 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
         $scope.metrics.reworkpercentage.bugtime = 0;
 
         $scope.showmetrics = false;
+        AppService.setShowSprint(false);
     }
 
     $scope.showSprintsByProject = function(){
@@ -60,14 +65,22 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
         AppService.invokeJiraPromise("/rest/greenhopper/1.0/rapidviews/list").then(function(result) {
             $scope.boards = result.data.views;
         }, function(err) {
-            $scope.boards = [{name : 'board a'}, {name : 'board b'}];
+            $scope.boards = ['board a', 'board b'];
             AppService.setError(err.message);
         });
     }
 
     var getSprintsByBoard = function() {
-        $scope.sprints = ['sprint a', 'sprint b'];
-        searchIssuesBySprint();
+        var url = "/rest/greenhopper/1.0/sprintquery/";
+        url += $scope.selectBoard.id;
+        url += "?includeHistoricSprints=true&includeFutureSprints=true";
+
+        AppService.invokeJiraPromise(url).then(function(result) {
+            $scope.sprints = result.data.sprints;
+            searchIssuesBySprint();
+        }, function(err) {
+            AppService.setError(err.message);
+        });
     }
 
     var searchIssuesBySprint = function() {
@@ -75,8 +88,39 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
 
         var promises = [];
 
-        $scope.showmetrics = true;
+        angular.forEach($scope.sprints, function(value, key){
+            AppService.invokeJiraPromise(url+"?" +
+                gadgets.io.encodeValues({jql: 'sprint=' + value.id}))
+                .then(function(result) {
+                    $scope.sprints[key].issues = result.data.issues;
+            }, function(err) {
+                AppService.setError(err.message);
+            })
 
+
+
+            promises.push(
+                AppService.invokeJiraPromise(url+"?" +
+                    gadgets.io.encodeValues({jql: 'sprint=' + value.id}))
+                .then(function(result) {
+                    $scope.issues.push.apply($scope.issues, result.data.issues);
+                }, function(err) {
+                    $scope.issues.push(['issue a', 'issue b']);
+                    AppService.setError(err.message);
+                })
+            );
+        });
+
+        $scope.showmetrics = true;
+        AppService.setTitle('Aggregate Metrics');
+
+        $q.all(promises).then(function () {
+            costofSprint();
+            failureLoad();
+            leadTime();
+            relativeVelocity();
+            reworkPercentage();
+        });
     }
 
     var failureLoad = function() {
@@ -103,11 +147,18 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
 
     var costofSprint = function() {
         $scope.metrics.cost.sprintstotal = $scope.sprints.length;
-        angular.forEach($scope.issues, function(value, key) {
-            if(value.fields.timespent !== null) {
-                $scope.metrics.cost.alltime += value.fields.timespent;
-            }
+        angular.forEach($scope.sprints, function(sprint, key) {
+            angular.forEach(sprint.issues, function(issue, key) {
+                if(issue.fields.timespent !== null) {
+                    $scope.metrics.cost.alltime += issue.fields.timespent;
+                }
+            });
         });
+        //        angular.forEach($scope.issues, function(value, key) {
+//            if(value.fields.timespent !== null) {
+//                $scope.metrics.cost.alltime += value.fields.timespent;
+//            }
+//        });
     }
 
     var leadTime = function() {
@@ -194,6 +245,14 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
 
     $scope.showDetail = function(template){
         $scope.template = template;
+                  $scope.data = [
+                [0, 3],
+                [1, 1],
+                [2, 6],
+                [3, 1],
+                [4, 2],
+                [5, 2]
+            ];
         $mdSidenav('right').toggle();
     }
 
@@ -202,40 +261,34 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
     };
 
     $scope.selectTab = function (env) {
-        console.log(env);
         AppService.setTitle(env.target.attributes[0].nodeValue);
+        AppService.setShowSprint(env.target.attributes[0].nodeValue === 'Team Metrics (Steve)' ? true : false);
+    };
+
+    $scope.showCostOfSprintSettings = function(ev) {
+        var confirm = $mdDialog.prompt()
+          .title('Modal "Labor Cost of Sprint" settings')
+          .textContent('Blended Hourly Rate.')
+          .placeholder('Rate')
+          .ok('Submit')
+          .cancel('Cancel');
+        $mdDialog.show(confirm).then(function(result) {
+            if(!isNaN(result)){
+                $scope.hourlyRate = result;
+            } else {
+                $mdDialog.show(
+                  $mdDialog.alert()
+                    .clickOutsideToClose(true)
+                    .title('Error')
+                    .textContent("The value isn't numeric")
+                    .ok('Got it!')
+                );
+            }
+        }, function() {
+        });
     };
 
     init();
     getBoards();
-
-
-google.charts.load('current', {packages: ['corechart', 'line']});
-google.charts.setOnLoadCallback(drawCurveTypes);
-
-function drawCurveTypes() {
-      var data = new google.visualization.DataTable();
-      data.addColumn('number', 'X');
-      data.addColumn('number', 'Team 1');
-      data.addColumn('number', 'Team 2');
-
-      data.addRows([
-        [0, 0, 5],    [1, 10, 5],   [2, 23, 15],  [3, 17, 9],   [4, 18, 10]
-      ]);
-
-      var options = {
-        title: 'Team sprint velocity',
-        legend: { position: 'bottom' },
-        hAxis: {
-          title: 'Sprint'
-        },
-        vAxis: {
-          title: 'Story points'
-        }
-      };
-
-      var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
-      chart.draw(data, options);
-    }
 
 };

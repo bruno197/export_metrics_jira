@@ -16,12 +16,19 @@ module.exports = function(grunt) {
           }
         },
         browserify: {
-            'export_metrics_jira/static/js/app.js': ['export_metrics_jira/src/app/app.js']
+            app: {
+                dest: 'export_metrics_jira/static/js/app.js',
+                src: ['export_metrics_jira/src/app/app.js']
+            },
+            gadget: {
+                dest: 'export_metrics_jira/static/js/gadget.js',
+                src: ['export_metrics_jira/src/gadget/app.js']
+            }
         },
         watch: {
             options: {livereload: true},
             js: {
-                files: 'export_metrics_jira/src/app/**/*.js',
+                files: 'export_metrics_jira/src/**/**/*.js',
                 tasks: ['browserify']
             },
             sass: {
@@ -33,9 +40,14 @@ module.exports = function(grunt) {
             options: {
                 mangle: false
             },
-            js: {
+            app: {
                 files: {
-                    'export_metrics_jira/static/js/app.min.js': ['static/js/app.js']
+                    'export_metrics_jira/static/js/app.min.js': ['export_metrics_jira/static/js/app.js']
+                }
+            },
+            gadget: {
+                files: {
+                    'export_metrics_jira/static/js/gadget.min.js': ['export_metrics_jira/static/js/gadget.js']
                 }
             }
         },

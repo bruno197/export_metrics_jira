@@ -12,7 +12,7 @@ require('angular-animate'),
 ])
 .config(require('./config'));
 
-},{"./config":2,"./core":8,"angular":25,"angular-animate":12,"angular-material":18,"angular-material-sidemenu":16,"angular-messages":20,"angular-sanitize":22,"angular-ui-router":23}],2:[function(require,module,exports){
+},{"./config":2,"./core":7,"angular":23,"angular-animate":10,"angular-material":16,"angular-material-sidemenu":14,"angular-messages":18,"angular-sanitize":20,"angular-ui-router":21}],2:[function(require,module,exports){
 module.exports = function($mdThemingProvider, $interpolateProvider) {
 
   'ngInject';
@@ -48,36 +48,12 @@ module.exports = function($mdThemingProvider, $interpolateProvider) {
       default: '300'
     });
 
-  $mdThemingProvider
-    .theme('eventlow')
-    .primaryPalette('light-green')
-    .backgroundPalette('light-green', {
-      default: '500'
-    });
-
-  $mdThemingProvider
-     .theme('producthigh')
-     .primaryPalette('amber')
-     .accentPalette('amber', {
-       default: '900'
-     })
-    .backgroundPalette('amber', {
-      default: '500'
-    });
-
-  $mdThemingProvider
-     .theme('productveryhigh')
-     .primaryPalette('amber')
-    .backgroundPalette('amber', {
-      default: '900'
-    });
-
   $mdThemingProvider.alwaysWatchTheme(true);
 
 };
 
 },{}],3:[function(require,module,exports){
-module.exports = function($rootScope, $mdSidenav, $scope, $mdMedia, $window, $mdDialog, AppService) {
+module.exports = function($scope, $mdDialog, AppService) {
     'ngInject';
 
     //Fix Jira bug version 6
@@ -99,91 +75,16 @@ module.exports = function($rootScope, $mdSidenav, $scope, $mdMedia, $window, $md
         );
     }
 
+    this.data = AppService;
 
-  var self = this;
-
-  this.data = AppService;
-
-  AppService.invokeJiraPromise("/rest/api/2/myself").then(function(result) {
-    AppService.setUser(result.data);
-  }, function(err) {
-    AppService.setError(err.message);
-  });
-
-  if ($mdMedia('gt-md')) {
-    self.lockedNavigation = true;
-  } else {
-    self.lockedNavigation = false;
-  }
-
-  self.openedNavigation = true;
-
-  $scope.$watch(function() {
-    return $mdMedia('xl');
-  }, function(mediumScreen) {
-    self.mediumScreen = mediumScreen;
-    self.lockedNavigation = mediumScreen;
-
-    if (mediumScreen) {
-      $mdSidenav(window.frameElement.id + '-edit').open();
-    }
-  });
-
-  this.toggleNavigation = function() {
-    $mdSidenav(window.frameElement.id + '-edit').toggle();
-    self.openedNavigation = !$mdSidenav(window.frameElement.id + '-edit').isOpen();
-  };
-
-  this.notificationsVisible = false;
-
-  this.toggleNotifications = function() {
-    this.notificationsVisible = !this.notificationsVisible;
-  };
-
+    AppService.invokeJiraPromise("/rest/api/2/myself").then(function(result) {
+        AppService.setUser(result.data);
+    }, function(err) {
+        AppService.setError(err.message);
+    });
 };
 
 },{}],4:[function(require,module,exports){
-module.exports = function($rootScope, $mdSidenav, $scope, $mdMedia, $window, AppService) {
-
-  'ngInject';
-
-  var self = this;
-  AppService.setLoading(false);
-  this.data = AppService;
-
-  if ($mdMedia('gt-md')) {
-    self.lockedNavigation = true;
-  } else {
-    self.lockedNavigation = false;
-  }
-
-  self.openedNavigation = true;
-
-  $scope.$watch(function() {
-    return $mdMedia('xl');
-  }, function(mediumScreen) {
-    self.mediumScreen = mediumScreen;
-    self.lockedNavigation = mediumScreen;
-
-    if (mediumScreen) {
-      $mdSidenav('navigation-drawer').open();
-    }
-  });
-
-  this.toggleNavigation = function() {
-    $mdSidenav('navigation-drawer').toggle();
-    self.openedNavigation = !$mdSidenav('navigation-drawer').isOpen();
-  };
-
-  this.notificationsVisible = false;
-
-  this.toggleNotifications = function() {
-    this.notificationsVisible = !this.notificationsVisible;
-  };
-
-};
-
-},{}],5:[function(require,module,exports){
 module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $mdSidenav) {
     'ngInject';
     AppService.setLoading(false);
@@ -191,6 +92,10 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
     var init = function() {
         $scope.selectProject;
         $scope.selectBoard;
+        $scope.selectSprint;
+
+        $scope.hourlyRate = 0;
+
         $scope.issues = [];
         $scope.metrics = {};
 
@@ -215,6 +120,7 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
         $scope.metrics.reworkpercentage.bugtime = 0;
 
         $scope.showmetrics = false;
+        AppService.setShowSprint(false);
     }
 
     $scope.showSprintsByProject = function(){
@@ -246,14 +152,22 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
         AppService.invokeJiraPromise("/rest/greenhopper/1.0/rapidviews/list").then(function(result) {
             $scope.boards = result.data.views;
         }, function(err) {
-            $scope.boards = [{name : 'board a'}, {name : 'board b'}];
+            $scope.boards = ['board a', 'board b'];
             AppService.setError(err.message);
         });
     }
 
     var getSprintsByBoard = function() {
-        $scope.sprints = ['sprint a', 'sprint b'];
-        searchIssuesBySprint();
+        var url = "/rest/greenhopper/1.0/sprintquery/";
+        url += $scope.selectBoard.id;
+        url += "?includeHistoricSprints=true&includeFutureSprints=true";
+
+        AppService.invokeJiraPromise(url).then(function(result) {
+            $scope.sprints = result.data.sprints;
+            searchIssuesBySprint();
+        }, function(err) {
+            AppService.setError(err.message);
+        });
     }
 
     var searchIssuesBySprint = function() {
@@ -261,8 +175,39 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
 
         var promises = [];
 
-        $scope.showmetrics = true;
+        angular.forEach($scope.sprints, function(value, key){
+            AppService.invokeJiraPromise(url+"?" +
+                gadgets.io.encodeValues({jql: 'sprint=' + value.id}))
+                .then(function(result) {
+                    $scope.sprints[key].issues = result.data.issues;
+            }, function(err) {
+                AppService.setError(err.message);
+            })
 
+
+
+            promises.push(
+                AppService.invokeJiraPromise(url+"?" +
+                    gadgets.io.encodeValues({jql: 'sprint=' + value.id}))
+                .then(function(result) {
+                    $scope.issues.push.apply($scope.issues, result.data.issues);
+                }, function(err) {
+                    $scope.issues.push(['issue a', 'issue b']);
+                    AppService.setError(err.message);
+                })
+            );
+        });
+
+        $scope.showmetrics = true;
+        AppService.setTitle('Aggregate Metrics');
+
+        $q.all(promises).then(function () {
+            costofSprint();
+            failureLoad();
+            leadTime();
+            relativeVelocity();
+            reworkPercentage();
+        });
     }
 
     var failureLoad = function() {
@@ -289,11 +234,18 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
 
     var costofSprint = function() {
         $scope.metrics.cost.sprintstotal = $scope.sprints.length;
-        angular.forEach($scope.issues, function(value, key) {
-            if(value.fields.timespent !== null) {
-                $scope.metrics.cost.alltime += value.fields.timespent;
-            }
+        angular.forEach($scope.sprints, function(sprint, key) {
+            angular.forEach(sprint.issues, function(issue, key) {
+                if(issue.fields.timespent !== null) {
+                    $scope.metrics.cost.alltime += issue.fields.timespent;
+                }
+            });
         });
+        //        angular.forEach($scope.issues, function(value, key) {
+//            if(value.fields.timespent !== null) {
+//                $scope.metrics.cost.alltime += value.fields.timespent;
+//            }
+//        });
     }
 
     var leadTime = function() {
@@ -380,6 +332,14 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
 
     $scope.showDetail = function(template){
         $scope.template = template;
+                  $scope.data = [
+                [0, 3],
+                [1, 1],
+                [2, 6],
+                [3, 1],
+                [4, 2],
+                [5, 2]
+            ];
         $mdSidenav('right').toggle();
     }
 
@@ -388,77 +348,225 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
     };
 
     $scope.selectTab = function (env) {
-        console.log(env);
         AppService.setTitle(env.target.attributes[0].nodeValue);
+        AppService.setShowSprint(env.target.attributes[0].nodeValue === 'Team Metrics (Steve)' ? true : false);
+    };
+
+    $scope.showCostOfSprintSettings = function(ev) {
+        var confirm = $mdDialog.prompt()
+          .title('Modal "Labor Cost of Sprint" settings')
+          .textContent('Blended Hourly Rate.')
+          .placeholder('Rate')
+          .ok('Submit')
+          .cancel('Cancel');
+        $mdDialog.show(confirm).then(function(result) {
+            if(!isNaN(result)){
+                $scope.hourlyRate = result;
+            } else {
+                $mdDialog.show(
+                  $mdDialog.alert()
+                    .clickOutsideToClose(true)
+                    .title('Error')
+                    .textContent("The value isn't numeric")
+                    .ok('Got it!')
+                );
+            }
+        }, function() {
+        });
     };
 
     init();
     getBoards();
 
-
-google.charts.load('current', {packages: ['corechart', 'line']});
-google.charts.setOnLoadCallback(drawCurveTypes);
-
-function drawCurveTypes() {
-      var data = new google.visualization.DataTable();
-      data.addColumn('number', 'X');
-      data.addColumn('number', 'Team 1');
-      data.addColumn('number', 'Team 2');
-
-      data.addRows([
-        [0, 0, 5],    [1, 10, 5],   [2, 23, 15],  [3, 17, 9],   [4, 18, 10]
-      ]);
-
-      var options = {
-        title: 'Team sprint velocity',
-        legend: { position: 'bottom' },
-        hAxis: {
-          title: 'Sprint'
-        },
-        vAxis: {
-          title: 'Story points'
-        }
-      };
-
-      var chart = new google.visualization.LineChart(document.getElementById('chart_div'));
-      chart.draw(data, options);
-    }
-
 };
 
-},{}],6:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 module.exports = function() {
   'ngInject';
   return {
+    require: '?ngModel',
     restrict: 'AE',
-    transclude: true,
-    scope: {
-      template: '@',
-    },
-    link: function (scope, element, attrs) {
+    link: function(scope, element, attr, controller) {
+      var gradlineSize = angular.isUndefined(scope.sprints) ? -1 : scope.sprints.length;
+      var settings = {
+        legend: { position: 'bottom' },
+         hAxis: { 
+          title: 'Sprint',
+          gridlines: {count: gradlineSize},
+        },
+        vAxis: { 
+          title: 'Story points',
+          format: 'short'
+        },
+        width: 450
+      };
+
+      var getOptions = function() {
+        return angular.extend({ }, settings, scope.$eval(attr.qnPiechart));
+      };
+
+      // creates instance of datatable and adds columns from settings
+      var getDataTable = function() {
+          var columns = scope.$eval(attr.qnColumns);
+          var data = new google.visualization.DataTable();
+          angular.forEach(columns, function(column) {
+              data.addColumn(column.type, column.name);
+          });
+          return data;
+      };
+
+      var getRows = function() {
         if(scope.template == "cost_of_sprint"){
-            element.html(buildCostOfSprint(scope));
+          var rows = [];
+          angular.forEach(scope.sprints, function(sprint, key) { 
+            var sprintTime = 0;
+            angular.forEach(sprint.issues, function(issue, key) { 
+              if(issue.fields.timespent !== null) { 
+                sprintTime += issue.fields.timespent;
+              } 
+            });
+            rows.push([key, sprintTime]); 
+          });
+         return rows;
         }
+        return [[0,5], [1,2], [2,5], [3,3]];
+      }
+
+      var init = function() {
+          var options = getOptions();
+          var rows = getRows();
+          if (controller) {
+
+              var drawChart = function() {
+                  var data = getDataTable();
+                  // set model
+                  data.addRows(rows);
+
+                  // Instantiate and draw our chart, passing in some options.
+                  var pie = new google.visualization.LineChart(element[0]);
+                  pie.draw(data, options);
+              };
+
+              controller.$render = function() {
+                  drawChart();
+              };
+          }
+
+          if (controller) {
+              // Force a render to override
+              controller.$render();
+          }
+      };
+
+      // Watch for changes to the directives options
+      scope.$watch(getOptions, init, true);
+      scope.$watch(getDataTable, init, true);
+      scope.$watch(getRows, init, true);
     }
   };
 
-  function buildCostOfSprint(metrics){
-    return '<md-content layout="row" layout-align="center start">' +
-        '<md-list flex>' +
-        '<md-subheader class="md-no-sticky">Cost of sprint</md-subheader>' +
-        '<md-list-item class="md-2-line">' +
-            '<div class="md-list-item-text">' +
-                '<h3>titulo</h3>' +
-            '</div>' +
-            '<p class="md-secondary">' +
-            '</p>' +
-        '</md-list-item>' +
-        '<md-divider ></md-divider>' +
-        '</md-list>' +
+  function buildTable(body){
+    return '<md-content layout-padding layout="row" layout-align="center start">' +
+        '<table md-colresize="md-colresize" class="md-table">' +
+            '<thead>' +
+                '<tr class="md-table-headers-row">' +
+                    '<th colspan="2" class="md-table-header">' +
+                        '<h2>Failure load</h2>' +
+                    '</th>' +
+                '</tr>' +
+                '<tr class="md-table-headers-row">' +
+                    '<th class="md-table-header">' +
+                        '<span>Field</span>' +
+                    '</th>' +
+                    '<th class="md-table-header">' +
+                        '<span>Value</span>' +
+                    '</th>' +
+                '</tr>' +
+            '</thead>' +
+            '<tbody>' +
+                body
+            '</tbody>' +
+        '</table>' +
     '</md-content>'
   }
+
+  function buildLeadTime(leadtime){
+    return '<tr class="md-table-content-row">' +
+      '<td class="md-table-content">' +
+        'All story' +
+      '</td>' +
+      '<td class="md-table-content">' +
+        leadtime.allstory +
+      '</td>' +
+    '</tr>' +
+    '<tr class="md-table-content-row">' +
+      '<td class="md-table-content">' +
+        'Sprints total' +
+      '</td>' +
+      '<td class="md-table-content">' +
+        leadtime.completedstory +
+      '</td>' +
+    '</tr>'
+  }
+
+  function buildCostOfSprint(cost){
+    return '<tr class="md-table-content-row">' +
+      '<td class="md-table-content">' +
+        'All time' +
+      '</td>' +
+      '<td class="md-table-content">' +
+        cost.alltime +
+      '</td>' +
+    '</tr>' +
+    '<tr class="md-table-content-row">' +
+      '<td class="md-table-content">' +
+        'Sprints total' +
+      '</td>' +
+      '<td class="md-table-content">' +
+            cost.sprintstotal +
+      '</td>' +
+    '</tr>'
+  }
+
+  function buildFailureLoad(failure){
+    return '<tr class="md-table-content-row">' +
+      '<td class="md-table-content">' +
+        'All sprints' +
+      '</td>' +
+      '<td class="md-table-content">' +
+        failure.allbugs +
+      '</td>' +
+    '</tr>' +
+    '<tr class="md-table-content-row">' +
+      '<td class="md-table-content">' +
+        'Sprints total' +
+      '</td>' +
+      '<td class="md-table-content">' +
+            failure.completedbugs +
+      '</td>' +
+    '</tr>'
+  }
+
+  function buildRelativeVelocity(relativevelocity){
+    return '<tr class="md-table-content-row">' +
+      '<td class="md-table-content">' +
+        'All sprints' +
+      '</td>' +
+      '<td class="md-table-content">' +
+        relativevelocity.storypointscurrent +
+      '</td>' +
+    '</tr>' +
+    '<tr class="md-table-content-row">' +
+      '<td class="md-table-content">' +
+        'Sprints total' +
+      '</td>' +
+      '<td class="md-table-content">' +
+         relativevelocity.storypointsfirst +
+      '</td>' +
+    '</tr>'
+  }
 };
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 module.exports = function($http, AppService) {
     'ngInject';
     return {
@@ -480,35 +588,38 @@ module.exports = function($http, AppService) {
         }
     };
 };
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var moduleName = 'Gadget.Core';
 
 angular.module(moduleName, [])
   .directive('loading', require('./directives/SpinerDirective'))
   .directive('metricsDetail', require('./directives/MetricsDetailDirective'))
   .controller('AppController', require('./controllers/AppController'))
-  .controller('DashboardController', require('./controllers/DashboardController'))
   .controller('JiraCoreController', require('./controllers/JiraCoreController'))
-  .service('AppService', require('./services/AppService'))
-  .service('JiraCoreService', require('./services/JiraCoreService'));
+  .service('AppService', require('./services/AppService'));
 
 module.exports = moduleName;
-},{"./controllers/AppController":3,"./controllers/DashboardController":4,"./controllers/JiraCoreController":5,"./directives/MetricsDetailDirective":6,"./directives/SpinerDirective":7,"./services/AppService":9,"./services/JiraCoreService":10}],9:[function(require,module,exports){
+},{"./controllers/AppController":3,"./controllers/JiraCoreController":4,"./directives/MetricsDetailDirective":5,"./directives/SpinerDirective":6,"./services/AppService":8}],8:[function(require,module,exports){
 module.exports = function($http) {
     'ngInject';
     var app = {
+        //API_HOST: 'https://blooming-oasis-63387.herokuapp.com',
+        API_HOST: 'http://172.16.59.54:8000',
         user: {},
         loading: true,
         baseUrl: "http://"+window.location.host,
         error: '',
         params: {},
-        title: ''
+        title: '',
+        showSprint: false
     };
 
     app.invokeJiraPromise = function(url){
         return new Promise(function(resolve, reject) {
             var path = app.baseUrl.concat(url);
-            //Disable gadget cache
+            /* Disable gadget cache
+            ** Set nocache for all request
+            */
             var refreshInterval = 0;
             var ts = new Date().getTime();
             var sep = "?";
@@ -519,6 +630,7 @@ module.exports = function($http) {
                 sep = "&";
             }
             path = [ path, sep, "nocache=", ts ].join("");
+            //END Disable gadget cache
 
             app.params[gadgets.io.RequestParameters.CONTENT_TYPE] = gadgets.io.ContentType.JSON;
 
@@ -533,267 +645,33 @@ module.exports = function($http) {
         })
     };
 
-  app.setLoading = function(loading) {
-    app.loading = loading;
-  };
-
-  app.setUser = function(user) {
-    app.user = user;
-  };
-
-  app.setError = function(erro) {
-    app.error = erro;
-  };
-
-  app.setTitle = function(title) {
-    app.title = title;
-  };
-
-  return app;
-};
-},{}],10:[function(require,module,exports){
-module.exports = function JiraCoreService(AppService) {
-    'ngInject';
-
-//    gadgets.user = {};
-    JiraCoreService.data = [];
-    JiraCoreService.errors = [];
-    JiraCoreService.status = 200;
-
-    JiraCoreService.getAllProjects = function(){
-        var url = AppService.baseUrl + "/rest/api/2/project";
-        AppService.invokePromise(url).then(function(result) {
-            return result;
-        }, function(err) {
-            AppService.setError(err.message);
-        });
+    app.invoke = function(request) {
+        return $http(request);
     }
 
-    //get UserPref
-//    var prefs = new gadgets.Prefs();
-
-    // Get configured user prefs
-//    var prefs = new gadgets.Prefs();
-//    var numEntries = prefs.getInt("num_entries");
-
-    // Fetch issues when the gadget loads
-//    gadgets.util.registerOnLoadHandler(fetchUser);
-//    gadgets.util.registerOnLoadHandler(getAllProject);
-
-
-//    function getSprintsByProject(key) {
-//        url = '/rest/greenhopper/1.0/sprint/picker';
-//        var params = {};
-//        params[gadgets.io.RequestParameters.CONTENT_TYPE] = gadgets.io.ContentType.JSON;
-//        params['project'] = key;
-//
-//        gadgets.io.makeRequest(baseUrl+url, function(data) {
-//                console.log(data);
-//            }, params);
-//    }
-//
-//    function sendEmail() {
-//        $('#loading').show();
-//        $.ajax({
-//            type: "POST",
-//            contentType: 'application/json',
-//            url: 'http://172.16.59.54:8000/jira/send/email',
-//            data: JSON.stringify({"name": "Bruno Rodrigues", "email": "brunofr@ciandt.com", "report": [gadgets.user]}),
-//            dataType: 'json',
-//            success: function(data) {
-//                displayMessage(_message.status.success, data.message);
-//            }
-//        }).fail(function() {
-//            displayMessage(_message.status.error, 'Unable to send');
-//        }).always(function() {
-//            $('#loading').hide();
-//        });
-//    }
-
-    JiraCoreService.makePOSTRequest = function(url, handleRequest) {
-        var refreshInterval = 0;
-        var ts = new Date().getTime();
-        var sep = "?";
-        if (refreshInterval && refreshInterval > 0) {
-            ts = Math.floor(ts / (refreshInterval * 1000));
-        }
-        if (url.indexOf("?") > -1) {
-            sep = "&";
-        }
-        url = [ url, sep, "nocache=", ts ].join("");
-
-        var params = {};
-        params[gadgets.io.RequestParameters.CONTENT_TYPE] = gadgets.io.ContentType.JSON;
-
-        gadgets.io.makeRequest(baseUrl+url, handleRequest, params);
+    app.setLoading = function(loading) {
+        app.loading = loading;
     };
 
-    JiraCoreService.promisePOSTRequest = function(url){
-        return new Promise(function(resolve, reject) {
-        var refreshInterval = 0;
-        var ts = new Date().getTime();
-        var sep = "?";
-        if (refreshInterval && refreshInterval > 0) {
-            ts = Math.floor(ts / (refreshInterval * 1000));
-        }
-        if (url.indexOf("?") > -1) {
-            sep = "&";
-        }
-        url = [ url, sep, "nocache=", ts ].join("");
-
-        var params = {};
-        params[gadgets.io.RequestParameters.CONTENT_TYPE] = gadgets.io.ContentType.JSON;
-
-        gadgets.io.makeRequest(AppService.baseUrl+url, function(result){
-            if (result.errors.length === 0 && result.rc === 200) {
-                resolve(result.data, result.rc);
-            }
-            else {
-                reject(result.errors, result.rc);
-            }
-        }, params);
-    })
+    app.setUser = function(user) {
+        app.user = user;
     };
-//    JiraCoreService.promisePOSTRequest = new Promise(function(resolve, reject) {
-//        var refreshInterval = 0;
-//        var ts = new Date().getTime();
-//        var sep = "?";
-//        if (refreshInterval && refreshInterval > 0) {
-//            ts = Math.floor(ts / (refreshInterval * 1000));
-//        }
-//        if (url.indexOf("?") > -1) {
-//            sep = "&";
-//        }
-//        url = [ url, sep, "nocache=", ts ].join("");
-//
-//        var params = {};
-//        params[gadgets.io.RequestParameters.CONTENT_TYPE] = gadgets.io.ContentType.JSON;
-//
-//        gadgets.io.makeRequest(baseUrl+url, function(data){
-//            if (result.errors.length === 0 && result.rc === 200) {
-//                resolve(result.data, result.rc);
-//            }
-//            else {
-//                reject(result.errors, result.rc);
-//            }
-//        }, params);
-//    });
 
-//    JiraCoreService.promise = new Promise(function(resolve, reject) {
-//      // do a thing, possibly async, then…
-//
-//      if (/* everything turned out fine */) {
-//        resolve("Stuff worked!");
-//      }
-//      else {
-//        reject(Error("It broke"));
-//      }
-//    });
+    app.setError = function(erro) {
+        app.error = erro;
+    };
 
-//    function handleProjects(data) {
-//        gadgets.data = data.data;
-//        gadgets.status = data.rc;
-//
-//        var options = '<option value="" disabled selected>Select some project</option>';
-//        $.each(gadgets.data, function(key, value){
-//            options += '<option value="' + value.key + '">' + value.name  + '</option>';
-//        });
-//        options += '<option value="">All projects</option>';
-//        $("#project").html(options);
-//
-//        $('#loading').hide();
-//        gadgets.window.adjustHeight();
-//    }
-//
-//    function handleUser(data) {
-//        gadgets.user = data.data;
-//        gadgets.status = data.rc;
-//        try{
-//            $('#user').html(isValid(gadgets.user.emailAddress));
-//        } catch(err){
-//            $('#user').html(err);
-//        }
-//    }
-//
-//    function handleSprints(data) {
-//
-//
-//        $('#metrics label').html('teste');
-//    }
-//
-//    function handleIssues(data) {
-//        gadgets.data = data.data;
-//        gadgets.status = data.rc;
-//        var out = '';
-//
-//        $.each(gadgets.data.issues, function(key, value){
-//            out += '<tr><td>' + value.key + '</td><td>'
-//                + value.fields.summary + '</td><td>'
-//                + value.fields.status.name +'</td></tr>';
-//        });
-//        $('tbody').html(out);
-//    }
-//
-//    //JQUERY EVENTS
-//    $('#project').on('change', function() {
-//        searchIssuesByProject(this.value);
-//    });
-//
-//    $( 'button' ).click(function() {
-//        sendEmail();
-//    });
-//
-//    //Utils
-//    function isValid(value) {
-//        if( typeof value !== 'undefined' ) {
-//            if( value ) {
-//                return value;
-//            }
-//        }
-//        return "erro!";
-//    }
-//
-//    function displayMessage(type, message) {
-//        var color = 'rgba(255, 0, 0, 0.5)';
-//        if( type === 'warning'){
-//            color = 'rgba(255,235,59,0.5)';
-//        } else if(type === 'success') {
-//            color = 'rgba(76, 175, 80, 0.5)';
-//        }
-//
-//        $('.msgbox').css('background-color', color).html(message)
-//            .hide()
-//            .fadeIn('slow').delay(4500).fadeOut('slow');
-//    }
-//
-//    JiraCoreService.getUser = function() {
-//        var config = {
-//            headers : {
-//                'Content-Type':'application/json; charset=utf-8'
-//            }
-//        }
-//
-//        return $http.get('/rest/api/2/myself', config)
-//            .success(successCallback)
-//            .error(errorCallback);
-//    };
-//
-//    var successCallback = function(data, status){
-//        console.log(data);
-//	    gadgets.data = data;
-//	    gadgets.status = status;
-//    };
-//
-//	var errorCallback = function(data, status){
-//	    console.log(data);
-//        gadgets.errors = data;
-//		gadgets.status = status;
-//    };
+    app.setTitle = function(title) {
+      app.title = title;
+    };
 
-  return JiraCoreService;
-}
+    app.setShowSprint = function(showSprint) {
+      app.showSprint = showSprint;
+    };
 
-},{}],11:[function(require,module,exports){
+    return app;
+};
+},{}],9:[function(require,module,exports){
 /**
  * @license AngularJS v1.5.7
  * (c) 2010-2016 Google, Inc. http://angularjs.org
@@ -4941,11 +4819,11 @@ angular.module('ngAnimate', [])
 
 })(window, window.angular);
 
-},{}],12:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 require('./angular-animate');
 module.exports = 'ngAnimate';
 
-},{"./angular-animate":11}],13:[function(require,module,exports){
+},{"./angular-animate":9}],11:[function(require,module,exports){
 /**
  * @license AngularJS v1.5.7
  * (c) 2010-2016 Google, Inc. http://angularjs.org
@@ -5352,19 +5230,19 @@ ngAriaModule.directive('ngShow', ['$aria', function($aria) {
 
 })(window, window.angular);
 
-},{}],14:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 require('./angular-aria');
 module.exports = 'ngAria';
 
-},{"./angular-aria":13}],15:[function(require,module,exports){
+},{"./angular-aria":11}],13:[function(require,module,exports){
 !function(e){function t(u){if(n[u])return n[u].exports;var d=n[u]={exports:{},id:u,loaded:!1};return e[u].call(d.exports,d,d.exports,t),d.loaded=!0,d.exports}var n={};return t.m=e,t.c=n,t.oe=function(e){throw e},t.p="",t(t.s=4)}([function(e,t,n){"use strict";function u(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(t,"__esModule",{value:!0});var d=n(6),i=u(d),r=n(5),o=u(r),a=function(){return{restrict:"E",scope:{locked:"@?mdLocked"},replace:!0,transclude:!0,template:i.default,link:o.default}};t.default={name:"mdSidemenu",directive:a}},function(e,t,n){"use strict";function u(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(t,"__esModule",{value:!0});var d=n(7),i=u(d),r=n(8),o=u(r),a=function(){return{restrict:"E",scope:{uiSref:"@?",uiSrefActive:"@?",href:"@?",target:"@?"},transclude:!0,template:o.default,controller:i.default,controllerAs:"$mdSidemenuButton",bindToController:!0}};t.default={name:"mdSidemenuButton",directive:a}},function(e,t,n){"use strict";function u(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(t,"__esModule",{value:!0});var d=n(9),i=u(d),r=n(10),o=u(r),a=function(){return{restrict:"E",scope:{heading:"@mdHeading",icon:"@?mdIcon",arrow:"@?mdArrow"},replace:!0,transclude:!0,template:o.default,controller:i.default,controllerAs:"$mdSidemenuContent",bindToController:!0}};t.default={name:"mdSidemenuContent",directive:a}},function(e,t,n){"use strict";function u(e){return e&&e.__esModule?e:{"default":e}}Object.defineProperty(t,"__esModule",{value:!0});var d=n(11),i=u(d),r=function(){return{restrict:"E",replace:!0,transclude:!0,template:i.default}};t.default={name:"mdSidemenuGroup",directive:r}},function(e,t,n){"use strict";function u(e){return e&&e.__esModule?e:{"default":e}}var d=n(0),i=u(d),r=n(3),o=u(r),a=n(2),c=u(a),l=n(1),s=u(l);!function(e){e.module("ngMaterialSidemenu",["ngMaterial"]).directive(i.default.name,i.default.directive).directive(o.default.name,o.default.directive).directive(c.default.name,c.default.directive).directive(s.default.name,s.default.directive)}(angular)},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.default=function(e,t,n){e.$watch(function(){return n.locked},function(e){e?t[0].classList.add("md-sidemenu-locked"):t[0].classList.remove("md-sidemenu-locked")})}},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.default=function(e,t){var n=t.locked&&"md-sidemenu-locked";return'<div class="md-sidemenu '+n+'" ng-transclude></div>'}},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.default=function(){}},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.default=function(){return'\n    <md-button\n      class="md-sidemenu-button"\n      layout="column"\n      ng-attr-href="{{ $mdSidemenuButton.href }}"\n      ng-attr-ui-sref="{{ $mdSidemenuButton.uiSref }}"\n      ng-attr-ui-sref-active="{{ $mdSidemenuButton.uiSrefActive }}"\n      ng-attr-target="{{ $mdSidemenuButton.target }}">\n      <div layout="row" layout-fill layout-align="start center" ng-transclude></div>\n    </md-button>\n  '}},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.default=function(){this.visible=!1,this.changeState=function(){this.visible=!this.visible}}},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.default=function(){return'\n    <div class="md-sidemenu-content" layout="column">\n      <md-button class="md-sidemenu-toggle" ng-if="$mdSidemenuContent.heading" ng-click="$mdSidemenuContent.changeState();" ng-class="{ \'md-active\': $mdSidemenuContent.visible }">\n        <div layout="row">\n          <md-icon ng-if="$mdSidemenuContent.icon">{{ $mdSidemenuContent.icon }}</md-icon>\n          <span flex>{{ $mdSidemenuContent.heading }}</span>\n          <md-icon ng-if="$mdSidemenuContent.arrow">keyboard_arrow_down</md-icon>\n        </div>\n      </md-button>\n\n      <div class="md-sidemenu-wrapper" md-sidemenu-disable-animate ng-class="{ \'md-active\': $mdSidemenuContent.visible, \'md-sidemenu-wrapper-icons\':  $mdSidemenuContent.icon }" layout="column" ng-transclude></div>\n    </div>\n  '}},function(e,t){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.default=function(){return'<div class="md-sidemenu-group" flex layout="column" layout-align="start start" ng-transclude></div>'}}]);
 
-},{}],16:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 require('./dest/angular-material-sidemenu.js');
 
 module.exports = 'ngMaterialSidemenu';
 
-},{"./dest/angular-material-sidemenu.js":15}],17:[function(require,module,exports){
+},{"./dest/angular-material-sidemenu.js":13}],15:[function(require,module,exports){
 /*!
  * Angular Material Design
  * https://github.com/angular/material
@@ -32671,7 +32549,7 @@ angular.module("material.core").constant("$MD_THEME_CSS", "/*  Only used with Th
 
 
 })(window, window.angular);;window.ngMaterial={version:{full: "1.0.9"}};
-},{}],18:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 // Should already be required, here for clarity
 require('angular');
 
@@ -32685,7 +32563,7 @@ require('./angular-material');
 // Export namespace
 module.exports = 'ngMaterial';
 
-},{"./angular-material":17,"angular":25,"angular-animate":12,"angular-aria":14}],19:[function(require,module,exports){
+},{"./angular-material":15,"angular":23,"angular-animate":10,"angular-aria":12}],17:[function(require,module,exports){
 /**
  * @license AngularJS v1.5.7
  * (c) 2010-2016 Google, Inc. http://angularjs.org
@@ -33422,11 +33300,11 @@ function ngMessageDirectiveFactory() {
 
 })(window, window.angular);
 
-},{}],20:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 require('./angular-messages');
 module.exports = 'ngMessages';
 
-},{"./angular-messages":19}],21:[function(require,module,exports){
+},{"./angular-messages":17}],19:[function(require,module,exports){
 /**
  * @license AngularJS v1.5.7
  * (c) 2010-2016 Google, Inc. http://angularjs.org
@@ -34145,11 +34023,11 @@ angular.module('ngSanitize').filter('linky', ['$sanitize', function($sanitize) {
 
 })(window, window.angular);
 
-},{}],22:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 require('./angular-sanitize');
 module.exports = 'ngSanitize';
 
-},{"./angular-sanitize":21}],23:[function(require,module,exports){
+},{"./angular-sanitize":19}],21:[function(require,module,exports){
 /**
  * State-based routing for AngularJS
  * @version v0.2.18
@@ -38689,7 +38567,7 @@ angular.module('ui.router.state')
   .filter('isState', $IsStateFilter)
   .filter('includedByState', $IncludedByStateFilter);
 })(window, window.angular);
-},{}],24:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 /**
  * @license AngularJS v1.5.7
  * (c) 2010-2016 Google, Inc. http://angularjs.org
@@ -70163,8 +70041,8 @@ $provide.value("$locale", {
 })(window);
 
 !window.angular.$$csp().noInlineStyle && window.angular.element(document.head).prepend('<style type="text/css">@charset "UTF-8";[ng\\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>');
-},{}],25:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 require('./angular');
 module.exports = angular;
 
-},{"./angular":24}]},{},[1]);
+},{"./angular":22}]},{},[1]);
