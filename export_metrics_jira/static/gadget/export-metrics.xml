@@ -25,9 +25,10 @@
     <Content type="html" view="default,canvas">
         <![CDATA[
             <div id="main">
-                <link rel="stylesheet" href="http://172.16.59.54:8000/static/css/style.css">
+                <link rel="stylesheet" href="https://blooming-oasis-63387.herokuapp.com/static/css/style.css">
                 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-                <script type="text/javascript" src="http://172.16.59.54:8000/static/js/loader.js"></script>
+
+                <script type="text/javascript" src="https://blooming-oasis-63387.herokuapp.com/static/js/loader.js"></script>
                 <script type="text/javascript">
                    google.charts.load('current', {'packages':['corechart']});
                 </script>
@@ -275,7 +276,7 @@
                     </div>
                 </div>
 
-                <script src="http://172.16.59.54:8000/static/js/gadget.js"></script>
+                <script src="https://blooming-oasis-63387.herokuapp.com/static/js/gadget.js"></script>
             </div>
         ]]>
     </Content>
