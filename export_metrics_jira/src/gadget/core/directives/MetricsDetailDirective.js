@@ -5,6 +5,7 @@ module.exports = function() {
     restrict: 'AE',
     link: function(scope, element, attr, controller) {
       var gradlineSize = angular.isUndefined(scope.sprints) ? -1 : scope.sprints.length;
+
       var settings = {
         legend: { position: 'bottom' },
          hAxis: { 
@@ -34,6 +35,7 @@ module.exports = function() {
 
       var getRows = function() {
         if(scope.template == "cost_of_sprint"){
+          scope.colunas = [{type:'number', name: 'Sprint'},{type:'number', name: 'Time spend'}];
           var rows = [];
           angular.forEach(scope.sprints, function(sprint, key) { 
             var sprintTime = 0;
@@ -44,7 +46,66 @@ module.exports = function() {
             });
             rows.push([key, sprintTime]); 
           });
-         return rows;
+
+          settings.vAxis.title = 'Sprint time';
+          return rows;
+        }
+        if(scope.template == "rework_percentage"){
+          scope.colunas = [{type:'number', name: 'Sprint'},{type:'number', name: 'Bugs'}];
+          var rows = [];
+          angular.forEach(scope.sprints, function(sprint, key) { 
+            var sprintTime = 0;
+            angular.forEach(sprint.issues, function(issue, key) { 
+                if(issue.fields.issuetype.name === 'Bug') {
+                    sprintTime += issue.fields.timespent;
+                }
+            });
+            rows.push([key, sprintTime]); 
+          });
+
+          settings.vAxis.title = 'Sprint bugs';
+          return rows;
+        }
+        if(scope.template == "unplanned_work"){
+            scope.colunas = [{type:'number', name: 'Sprint'},{type:'number', name: 'All'},{type:'number', name: 'Completed'}];
+            var rows = [];
+            angular.forEach(scope.sprints, function(sprint, key) { 
+                 rows.push([key, sprint.allIssuesEstimateSum, sprint.completedIssuesEstimateSum]); 
+            });
+
+            settings.vAxis.title = 'Issues Estimate';
+
+            return rows;
+        }
+        if(scope.template == "cost_of_project"){
+            scope.colunas = [{type:'number', name: 'Epic'}];
+            var rows = [];
+            var keys = Object.keys(scope.metrics.costofproject);
+            angular.forEach(keys, function(epic, key) { 
+                scope.colunas.push({type:'number', name: epic});
+                rows.push([key, (scope.metrics.costofproject[epic].hoursspent * scope.metrics.costofproject[epic].hourlyrate)]); 
+            });
+
+            //rows.push([1,10,11]);
+
+            settings.vAxis.title = 'Issues Estimate';
+
+            return rows;
+        }
+        if(scope.template == "rework_by_epic"){
+            scope.colunas = [{type:'number', name: 'Epic'}];
+            var rows = [];
+            var keys = Object.keys(scope.metrics.costofproject);
+            angular.forEach(keys, function(epic, key) { 
+                scope.colunas.push({type:'number', name: epic});
+                rows.push([key, (scope.metrics.costofproject[epic].hoursspent * scope.metrics.costofproject[epic].hourlyrate)]); 
+            });
+
+            //rows.push([1,10,11]);
+
+            settings.vAxis.title = 'Issues Estimate';
+
+            return rows;
         }
         return [[0,5], [1,2], [2,5], [3,3]];
       }

@@ -47,9 +47,9 @@
 
                                 <md-input-container ng-if="true" flex>
                                     <label>Select sprint</label>
-                                    <md-select ng-model="selectBoard" ng-change="showBoardInfo()">
-                                        <md-option ng-repeat="board in boards" ng-value="board">
-                                            //board.name//
+                                    <md-select ng-model="selectSprint" ng-change="filterIssueBySprint(selectSprint)">
+                                        <md-option ng-repeat="sprint in sprints" ng-value="sprint">
+                                            //sprint//
                                         </md-option>
                                     </md-select>
                                 </md-input-container>

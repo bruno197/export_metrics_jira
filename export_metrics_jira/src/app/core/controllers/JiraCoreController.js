@@ -2,6 +2,8 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
     'ngInject';
     AppService.setLoading(false);
 
+    $scope.selectSprint;
+
     var init = function() {
         $scope.selectProject;
         $scope.selectBoard;
@@ -205,6 +207,11 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
         console.log(env);
         AppService.setTitle(env.target.attributes[0].nodeValue);
     };
+
+    $scope.filterIssueBySprint = function(sprint) {
+        console.log(sprint);
+        console.log($scope.selectSprint);
+    }
 
     init();
     getBoards();

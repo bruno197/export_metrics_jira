@@ -2,63 +2,24 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
     'ngInject';
     AppService.setLoading(false);
 
+    $scope.selectSprint;
+    //$scope.colunas = [{type:'number', name: 'Sprint'},{type:'number', name: 'Points'}];
+
     var init = function() {
         $scope.selectProject;
         $scope.selectBoard;
-        $scope.selectSprint;
 
         $scope.hourlyRate = 0;
 
-        $scope.issues = [];
         $scope.metrics = {};
-
-        $scope.metrics.failure = {};
-        $scope.metrics.failure.allbugs = 0;
-        $scope.metrics.failure.completedbugs = 0;
-
-        $scope.metrics.cost = {};
-        $scope.metrics.cost.alltime = 0;
-        $scope.metrics.cost.sprintstotal = 0;
-
-        $scope.metrics.leadtime = {};
-        $scope.metrics.leadtime.allstory = 0;
-        $scope.metrics.leadtime.completedstory = 0;
-
-        $scope.metrics.relativevelocity = {};
-        $scope.metrics.relativevelocity.storypointscurrent = 0;
-        $scope.metrics.relativevelocity.storypointsfirst = 0;
-
-        $scope.metrics.reworkpercentage = {};
-        $scope.metrics.reworkpercentage.alltime = 0;
-        $scope.metrics.reworkpercentage.bugtime = 0;
 
         $scope.showmetrics = false;
         AppService.setShowSprint(false);
     }
 
-    $scope.showSprintsByProject = function(){
-        AppService.params['project'] = $scope.selectProject.key;
-        AppService.invokeJiraPromise("/rest/greenhopper/1.0/sprint/picker").then(function(result) {
-        //http://192.168.99.100:8080/rest/greenhopper/1.0/integration/teamcalendars/sprint/list?jql=project=GK
-            $scope.issues = result.data.suggestions;
-        }, function(err) {
-            $scope.issues = ['c', 'd'];
-            AppService.setError(err.message);
-        });
-    }
-
     $scope.showBoardInfo = function() {
         init();
         getSprintsByBoard();
-    }
-
-    var getAllProjects = function() {
-        AppService.invokeJiraPromise("/rest/api/2/project").then(function(result) {
-            $scope.projects = result.data;
-        }, function(err) {
-            $scope.projects = ['a', 'b'];
-            AppService.setError(err.message);
-        });
     }
 
     var getBoards = function() {
@@ -89,23 +50,12 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
         var promises = [];
 
         angular.forEach($scope.sprints, function(value, key){
-            AppService.invokeJiraPromise(url+"?" +
+            promises.push(
+                AppService.invokeJiraPromise(url+"?" +
                 gadgets.io.encodeValues({jql: 'sprint=' + value.id}))
                 .then(function(result) {
                     $scope.sprints[key].issues = result.data.issues;
-            }, function(err) {
-                AppService.setError(err.message);
-            })
-
-
-
-            promises.push(
-                AppService.invokeJiraPromise(url+"?" +
-                    gadgets.io.encodeValues({jql: 'sprint=' + value.id}))
-                .then(function(result) {
-                    $scope.issues.push.apply($scope.issues, result.data.issues);
                 }, function(err) {
-                    $scope.issues.push(['issue a', 'issue b']);
                     AppService.setError(err.message);
                 })
             );
@@ -115,64 +65,86 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
         AppService.setTitle('Aggregate Metrics');
 
         $q.all(promises).then(function () {
-            costofSprint();
-            failureLoad();
-            leadTime();
-            relativeVelocity();
-            reworkPercentage();
+            updateMetrics($scope.sprints);
         });
     }
 
-    var failureLoad = function() {
-        angular.forEach($scope.issues, function(value, key) {
-            if(value.fields.issuetype.name === 'Bug') {
-                $scope.metrics.failure.allbugs += 1;
-                if(value.fields.status.name === 'Done') {
-                    $scope.metrics.failure.completedbugs += 1;
-                }
-            }
-        });
+    var updateMetrics = function(sprints) {
+        costofSprint(sprints);
+        failureLoad(sprints);
+        reworkPercentage(sprints);
+        leadTime(sprints);
+        relativeVelocity();
+        unplannedWork(sprints);
+        costOfProject(sprints);
+        reworkByEpic(sprints);
     }
 
-    var reworkPercentage = function() {
-        angular.forEach($scope.issues, function(value, key) {
-            if(value.fields.timespent !== null) {
-                $scope.metrics.reworkpercentage.alltime += value.fields.timespent;
-                if(value.fields.issuetype.name === 'Bug') {
-                    $scope.metrics.reworkpercentage.bugtime += value.fields.timespent;
-                }
-            }
-        });
-    }
+    var costofSprint = function(sprints) {
+        $scope.metrics.cost = {alltime: 0, sprintstotal: 0};
 
-    var costofSprint = function() {
-        $scope.metrics.cost.sprintstotal = $scope.sprints.length;
-        angular.forEach($scope.sprints, function(sprint, key) {
+        $scope.metrics.cost.sprintstotal = sprints.length;
+        angular.forEach(sprints, function(sprint, key) {
             angular.forEach(sprint.issues, function(issue, key) {
                 if(issue.fields.timespent !== null) {
                     $scope.metrics.cost.alltime += issue.fields.timespent;
                 }
             });
         });
-        //        angular.forEach($scope.issues, function(value, key) {
-//            if(value.fields.timespent !== null) {
-//                $scope.metrics.cost.alltime += value.fields.timespent;
-//            }
-//        });
     }
 
-    var leadTime = function() {
-        angular.forEach($scope.issues, function(value, key) {
-            if(value.fields.issuetype.name === 'Story') {
-                $scope.metrics.leadtime.allstory += 1;
-                if(value.fields.status.name === 'Done') {
-                    $scope.metrics.failure.completedstory += 1;
+    var failureLoad = function(sprints) {
+        $scope.metrics.failure = {allbugs: 0, completedbugs: 0};
+
+        angular.forEach(sprints, function(sprint, key) {
+            angular.forEach(sprint.issues, function(value, key) {
+                if(value.fields.issuetype.name === 'Bug') {
+                    $scope.metrics.failure.allbugs += 1;
+                    if(value.fields.status.name === 'Done') {
+                        $scope.metrics.failure.completedbugs += 1;
+                    }
                 }
-            }
+            });
         });
     }
 
+    var reworkPercentage = function(sprints) {
+        $scope.metrics.reworkpercentage = {alltime: 0, bugtime: 0};
+
+        angular.forEach(sprints, function(sprint, key) {
+            angular.forEach(sprint.issues, function(value, key) {
+                if(value.fields.timespent !== null) {
+                    $scope.metrics.reworkpercentage.alltime += value.fields.timespent;
+                    if(value.fields.issuetype.name === 'Bug') {
+                        $scope.metrics.reworkpercentage.bugtime += value.fields.timespent;
+                    }
+                }
+            });
+        });
+    }
+
+    var leadTime = function(sprints) {
+        $scope.metrics.leadtime = {allstory: 0, completedstory: 0};
+
+        angular.forEach(sprints, function(sprint, key) {
+            angular.forEach(sprint.issues, function(value, key) {
+                if(value.fields.issuetype.name === 'Story') {
+                    $scope.metrics.leadtime.allstory += 1;
+                    if(value.fields.status.name === 'Done') {
+                        $scope.metrics.failure.completedstory += 1;
+                    }
+                }
+            });
+        });
+    }
+
+    var teamSprintVelocity = function(sprints) {
+        $scope.metrics.team = [];
+    }
+
     var relativeVelocity = function() {
+        $scope.metrics.relativevelocity = {storypointscurrent: 0, storypointsfirst: 0};
+
         var url = "/rest/greenhopper/1.0/rapid/charts/sprintreport?";
         url += "rapidViewId=" + $scope.selectBoard.id;
 
@@ -201,6 +173,106 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
 
         $q.all(promises).then(function () {
             //After all promises run
+        });
+    }
+
+    var unplannedWork = function(sprints) {
+        $scope.metrics.unplannedwork = {completedIssuesEstimateSum: 0, allIssuesEstimateSum: 0};
+
+        var url = "/rest/greenhopper/1.0/rapid/charts/sprintreport?";
+        url += "rapidViewId=" + $scope.selectBoard.id;
+
+        var defer = $q.defer();
+        var promises = [];
+
+        angular.forEach(sprints, function(sprint, key){
+            promises.push(
+                AppService.invokeJiraPromise(url+"&sprintId="+sprint.id).then(function(result) {
+                    $scope.sprints[key].completedIssuesEstimateSum = result.data.contents.completedIssuesEstimateSum.value;
+                    $scope.sprints[key].allIssuesEstimateSum = result.data.contents.allIssuesEstimateSum.value;
+                    return result.data.contents;
+                }, function(err) {
+                    AppService.setError(err.message);
+                    return err;
+                })
+            );
+        });
+
+        $q.all(promises).then(function (result) {
+            angular.forEach($scope.sprints, function(contents, key){
+                $scope.metrics.unplannedwork.completedIssuesEstimateSum += contents.completedIssuesEstimateSum;
+                $scope.metrics.unplannedwork.allIssuesEstimateSum += contents.allIssuesEstimateSum;
+            });
+        });;
+    }
+
+    var planningAccuracy = function(sprints) {
+        $scope.metrics.planningaccuracy = {completedStoryPoints: 0, commitedStoryPoints: 0};
+
+        angular.forEach(sprints, function(sprint, key) {
+            $scope.metrics.planningaccuracy.completedStoryPoints += sprint.completedIssuesEstimateSum;
+        });
+    }
+
+    var costOfProject = function(sprints) {
+        $scope.metrics.costofproject = {};
+
+        angular.forEach(sprints, function(sprint, key) {
+            angular.forEach(sprint.issues, function(issue, key) {
+                if(issue.fields.customfield_10005 !== null){
+                    if($scope.metrics.costofproject[issue.fields.customfield_10005] !== undefined) {
+                        if(issue.fields.timespent !== null) {
+                            $scope.metrics.costofproject[issue.fields.customfield_10005].hoursspent += issue.fields.timespent;
+                        }
+                        if(issue.fields.timeestimate !== null) {
+                            $scope.metrics.costofproject[issue.fields.customfield_10005].hourlyrate += issue.fields.timeestimate;
+                        }
+                    } else {
+                        $scope.metrics.costofproject[issue.fields.customfield_10005] = {hoursspent: 0, hourlyrate: 0};
+                        if(issue.fields.timespent !== null) {
+                            $scope.metrics.costofproject[issue.fields.customfield_10005].hoursspent = issue.fields.timespent;
+                        }
+                        if(issue.fields.timeestimate !== null) {
+                            $scope.metrics.costofproject[issue.fields.customfield_10005].hourlyrate = issue.fields.timeestimate;
+                        }
+                    }
+                }
+            });
+        });
+    }
+
+    var backlogHealth = function(sprints) {
+        $scope.metrics.backloghealth = {currentapprovedstories: 0};
+
+
+    }
+
+    var reworkByEpic = function(sprints) {
+        $scope.metrics.reworkepic = {};
+
+        angular.forEach(sprints, function(sprint, key) {
+            angular.forEach(sprint.issues, function(issue, key) {
+                if(value.fields.issuetype.name === 'Bug') {
+                    if(issue.fields.customfield_10005 !== null){
+                        if($scope.metrics.reworkepic[issue.fields.customfield_10005] !== undefined) {
+                            if(issue.fields.timespent !== null) {
+                                if(issue.fields.status.name === 'Done') {
+                                    $scope.metrics.reworkepic[issue.fields.customfield_10005].completedbugs += issue.fields.timespent;
+                                }
+                                $scope.metrics.reworkepic[issue.fields.customfield_10005].alltime += issue.fields.timespent;
+                            }
+                        } else {
+                            $scope.metrics.costofproject[issue.fields.customfield_10005] = {alltime: 0, completedbugs: 0};
+                            if(issue.fields.timespent !== null) {
+                                if(issue.fields.status.name === 'Done') {
+                                    $scope.metrics.reworkepic[issue.fields.customfield_10005].completedbugs = issue.fields.timespent;
+                                }
+                                $scope.metrics.reworkepic[issue.fields.customfield_10005].alltime = issue.fields.timespent;
+                            }
+                        }
+                    }
+                }
+            });
         });
     }
 
@@ -243,16 +315,13 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
         });
     }
 
+    $scope.filterIssueBySprint = function(sprint) {
+        var sprints = [sprint];
+        updateMetrics([sprint]);
+    }
+
     $scope.showDetail = function(template){
         $scope.template = template;
-                  $scope.data = [
-                [0, 3],
-                [1, 1],
-                [2, 6],
-                [3, 1],
-                [4, 2],
-                [5, 2]
-            ];
         $mdSidenav('right').toggle();
     }
 
@@ -263,6 +332,9 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
     $scope.selectTab = function (env) {
         AppService.setTitle(env.target.attributes[0].nodeValue);
         AppService.setShowSprint(env.target.attributes[0].nodeValue === 'Team Metrics (Steve)' ? true : false);
+        if(!AppService.showSprint){
+            updateMetrics($scope.sprints);
+        }
     };
 
     $scope.showCostOfSprintSettings = function(ev) {
@@ -275,6 +347,29 @@ module.exports = function(AppService, $scope, $q, $http, $mdDialog, $mdToast, $m
         $mdDialog.show(confirm).then(function(result) {
             if(!isNaN(result)){
                 $scope.hourlyRate = result;
+            } else {
+                $mdDialog.show(
+                  $mdDialog.alert()
+                    .clickOutsideToClose(true)
+                    .title('Error')
+                    .textContent("The value isn't numeric")
+                    .ok('Got it!')
+                );
+            }
+        }, function() {
+        });
+    };
+
+    $scope.showReworkPercentageSettings = function(ev) {
+        var confirm = $mdDialog.prompt()
+          .title('Modal "Rework percentage" settings')
+          .textContent('Quality Rate.')
+          .placeholder('Rate')
+          .ok('Submit')
+          .cancel('Cancel');
+        $mdDialog.show(confirm).then(function(result) {
+            if(!isNaN(result)){
+                $scope.qualityRate = result;
             } else {
                 $mdDialog.show(
                   $mdDialog.alert()
